@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
+import os
+import json
 import sqlalchemy
 import sqlalchemy.orm
 from math import ceil
 from datetime import datetime
-from time import mktime
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.ext.declarative import declarative_base
 
 
-__all__ = ["db", "BaseQuery"]
+__all__ = ["SQLAlchemy", "BaseQuery"]
 
 
 # 封装sqlalchemy的使用
@@ -109,16 +110,12 @@ class Model(object):
     query_class = BaseQuery
     query = None
 
-    def to_dict(self, *columns):
+    def to_dict(self, keys=None):
         dct = {}
-        for c in columns:
-            d = getattr(self, c)
-            if isinstance(d, datetime):
-                dct[c] = d
-                dct[c + "_str"] = d.strftime("%Y-%m-%d %H:%M:%S")
-                dct[c + "_ts"] = int(mktime(d.timetuple()))
-            else:
-                dct[c] = d
+        for column in self.__table__.columns:
+            cname = column.name
+            if keys is None or cname in keys:
+                dct[column.name] = getattr(self, column.name)
         return dct
 
     def cs_update(self, **kwargs):
@@ -136,41 +133,48 @@ class SQLAlchemy(object):
     """ 对sqlalchemy使用的封装 """
     _Session = None
 
-    def __init__(self):
+    def __init__(self, dump_deleted=None):
         _include_sqlalchemy(self)
         self.Model = self.make_declarative_base()
+        self.dump_deleted = dump_deleted
 
     def make_declarative_base(self):
         base = declarative_base(cls=Model, name="Model")
         base.query = _QueryProperty(self)
         return base
 
+    def _setup_dump_deleted(self):
+        # TODO 需要研究清楚 (hongbo @ 2014-01-23 18:40)
+        if not self.dump_deleted:
+            return
+
+        def dump_object(obj):
+            fn = obj._dump_id()
+            ffn = os.path.join(self.dump_deleted, fn)
+            with open(ffn, "w") as f:
+                json.dump(obj.to_dict(), f)
+
+        @event.listen_for(self._Session, "before_commit")
+        def before_commit(session):
+            for model, operation in session._model_changes.values():
+                if model._dump_deleted and operation == "delete":
+                    dump_object(model)
+
     @property
     def session(self):
         return self._Session
 
-    @session.setter
-    def set_Session(self, S):
-        assert self._Session is None, "Session already setted"
-        self._Session = S
-
-    def use_scoped_session(self, engine=None):
+    def use_scoped_session(self, engine=None, sa_url=None, sa_echo=False):
         if not engine:
-            from ..config import get_config
-            config = get_config()
-            dburl = config.SQLALCHEMY_DATABASE_URI
-            dbecho = config.SQLALCHEMY_ECHO
-            engine = create_engine(dburl, echo=dbecho)
+            engine = create_engine(sa_url, echo=sa_echo)
 
         session_factory = sessionmaker(bind=engine)
         self._Session = scoped_session(session_factory)
         self._engine = engine
+        self._setup_dump_deleted()
 
     def create_all(self):
         self.Model.metadata.create_all(bind=self._engine)
 
     def drop_all(self):
         self.Model.metadata.drop_all(bind=self._engine)
-
-
-db = SQLAlchemy()
