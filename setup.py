@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="moon",
-    version="0.2",
+    version="0.3",
     packages=["moon", "moon.sqlalchemy", "moon.lazy"],
 
     install_requires=['sqlalchemy'],
