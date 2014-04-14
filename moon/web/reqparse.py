@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest
 import six
@@ -207,7 +208,16 @@ class RequestParser(object):
 
         kwargs.setdefault("type", check_phone)
         return self.add_argument(name, **kwargs)
-                
+
+    def add_regex_argument(self, name, regex, flags=0, **kwargs):
+        t = RegExpParse(regex, flags)
+        kwargs["type"] = t
+        return self.add_argument(name, **kwargs)
+
+    def add_email_argument(self, name, **kwargs):
+        return self.add_regex_argument(name, r'^.+@[^.].*\.[a-z]{2,10}$',
+                                       re.IGNORECASE, **kwargs)
+
 
 # Some types define
 ###############################################################################
@@ -268,3 +278,21 @@ class PositionParse(object):
         pos = NameSpace(x=mapX, y=mapY, desc=desc)
 
         return pos
+
+
+class RegExpParse(object):
+    """ 正则表达式 """
+    def __init__(self, regex, flags=0):
+        if isinstance(regex, (str, unicode)):
+            regex = re.compile(regex, flags)
+        self.regex = regex
+
+    def __call__(self, value, name):
+        value = value.strip()
+        if not value:
+            return None
+
+        if not self.regex.match(value):
+            raise ValueError("Can not match regex")
+
+        return value
