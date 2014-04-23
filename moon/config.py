@@ -5,14 +5,14 @@ import logging
 _confdata = {}
 
 
-def setconf(prjname, confile, confdict={}):
-    _confdata[prjname] = (confile, confdict)
+def setconf(prjname, confile, **kwargs):
+    _confdata[prjname] = (confile, kwargs)
 
 
 def exportconf(prjname, globals):
     """ 从文件和字典中导出配置
     >>> open("/tmp/testmoonconf.py", "w").write("OSOS = 10")
-    >>> setconf("hongbo", "/tmp/testmoonconf.py", {"OSOSOS": 321})
+    >>> setconf("hongbo", "/tmp/testmoonconf.py", OSOSOS=321)
     >>> d = {}
     >>> exportconf("hongbo", d)
     >>> print d["OSOS"]
@@ -38,7 +38,8 @@ def exportconf(prjname, globals):
 
 
 if __name__ == "__main__":
-    import sys, os
+    import sys
+    import os
     sys.path.remove(os.path.abspath(os.path.dirname(__file__)))
     import doctest
     doctest.testmod()
