@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """ 这里是一些工具, 用来实现简单的项目配置系统 """
+from __future__ import absolute_import
 from logging import getLogger
 
 logger = getLogger("moon.config")
