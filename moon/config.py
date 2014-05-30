@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """ 这里是一些工具, 用来实现简单的项目配置系统 """
 from __future__ import absolute_import
-from logging import getLogger
 
-logger = getLogger("moon.config")
 _confdata = {}
 
 
@@ -31,7 +29,6 @@ def exportconf(prjname, globals):
     try:
         with open(filename) as config_file:
             exec(compile(config_file.read(), filename, "exec"), globals)
-            logger.info("Load config from %s", filename)
     except IOError as e:
         e.strerror = 'Unable to load configuration file (%s)' % e.strerror
         raise
