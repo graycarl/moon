@@ -3,20 +3,40 @@
 from __future__ import absolute_import
 import os
 import logging
+from logging import Formatter
+from logging.handlers import SysLogHandler as _SysLogHandler
 import inspect
 from pprint import pformat
 from functools import wraps
 
-__all__ = ["setlogging", "FuncLogger"]
+__all__ = ["setlogging", "FuncLogger", "SysLogHandler"]
 
 
 def setlogging(logfile="debug.log"):
+    """ 设置简单日志 """
     fmt = "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s"
     if logfile:
         filename = os.path.abspath(os.path.join(os.getcwd(), "log", logfile))
         logging.basicConfig(filename=filename, format=fmt, level=logging.DEBUG)
     else:
         logging.basicConfig(format=fmt, level=logging.DEBUG)
+
+
+class SysLogHandler(_SysLogHandler):
+    """ 扩展标准库的SysLogHandler，使用loggername作为tag """
+
+    def __init__(self, tag=None, withpid=False, **kwargs):
+        super(SysLogHandler, self).__init__(**kwargs)
+        # 产生tag的formatter
+        fmt = tag or "%(name)s"
+        if withpid:
+            fmt += "[%(process)d]"
+        self.tag_formatter = Formatter(fmt)
+
+    def format(self, record):
+        msg = super(SysLogHandler, self).format(record)
+        tag = self.tag_formatter.format(record)
+        return "{}: {}".format(tag, msg)
 
 
 class FuncLogger(object):
