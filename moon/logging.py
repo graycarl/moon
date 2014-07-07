@@ -36,7 +36,7 @@ class SysLogHandler(_SysLogHandler):
     def format(self, record):
         msg = super(SysLogHandler, self).format(record)
         tag = self.tag_formatter.format(record)
-        return "{}: {}".format(tag, msg)
+        return "%s: %s" % (tag, msg)
 
 
 class FuncLogger(object):
