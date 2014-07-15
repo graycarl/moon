@@ -11,7 +11,7 @@ from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.ext.declarative import declarative_base
 
 
-__all__ = ["SQLAlchemy", "BaseQuery"]
+__all__ = ["SQLAlchemy", "BaseQuery", "PageNotFound"]
 
 
 # 封装sqlalchemy的使用
@@ -76,6 +76,7 @@ class BaseQuery(sqlalchemy.orm.Query):
         @error_out: 当没有元素的时候，是否raise
         返回一个:class:`Pagination`对象
         """
+        error_out = PageNotFound if error_out is True else error_out
         if page_num < 1 and error_out:
             raise error_out
         items = self.limit(per_page) \
@@ -178,3 +179,7 @@ class SQLAlchemy(object):
 
     def drop_all(self):
         self.Model.metadata.drop_all(bind=self._engine)
+
+
+class PageNotFound(Exception):
+    """ 页码不存在的异常 """
