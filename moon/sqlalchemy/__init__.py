@@ -169,7 +169,7 @@ class SQLAlchemy(object):
         if not engine:
             engine = create_engine(sa_url, echo=sa_echo)
 
-        session_factory = sessionmaker(bind=engine)
+        session_factory = sessionmaker(bind=engine, query_cls=BaseQuery)
         self._Session = scoped_session(session_factory)
         self._engine = engine
         self._setup_dump_deleted()
