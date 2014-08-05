@@ -111,11 +111,11 @@ class Model(object):
     query_class = BaseQuery
     query = None
 
-    def to_dict(self, keys=None):
+    def to_dict(self, *keys):
         dct = {}
         for column in self.__table__.columns:
             cname = column.name
-            if keys is None or cname in keys:
+            if not keys or cname in keys:
                 dct[column.name] = getattr(self, column.name)
         return dct
 
