@@ -27,7 +27,8 @@ class Argument(object):
     def __init__(self, name, default=None, dest=None, required=False,
                  ignore=False, type=six.text_type, location=("values",),
                  choices=(), action="store", help=None, operators=("=",),
-                 case_sensitive=True, max_len=800, min_len=0, max_count=None):
+                 case_sensitive=True, max_len=800, min_len=0, max_count=None,
+                 min_count=None):
         self.name = name
         self.default = default
         self.dest = dest
@@ -43,6 +44,7 @@ class Argument(object):
         self.max_len = max_len
         self.min_len = min_len
         self.max_count = max_count
+        self.min_count = min_count
 
     def source(self, request):
         if isinstance(self.location, six.string_types):
@@ -121,10 +123,12 @@ class Argument(object):
             return self.default
 
         if self.action == "append":
-            if self.max_count and len(results) > self.max_count:
+            if (self.max_count and len(results) > self.max_count) or \
+               (self.min_count and len(results) < self.min_count):
                 self.handle_validation_error(
                     ValueError(
-                        'array length out of limit: {}'.format(self.max_count)
+                        'array length out of limit: {} - {}'
+                        .format(self.max_count, self.min_count)
                     )
                 )
             return results
