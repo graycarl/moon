@@ -129,6 +129,15 @@ class Model(object):
         if hasattr(self, "update_time"):
             self.update_time = datetime.utcnow()
 
+    def __repr__(self):
+        return unicode(self).encode("utf8")
+    
+    def __str__(self):
+        return unicode(self).encode("utf8")
+    
+    def __unicode__(self):
+        return u"<{}: {}>".format(self.__class__.__name__, id(self))
+
 
 class SQLAlchemy(object):
     """ 对sqlalchemy使用的封装 """
