@@ -222,6 +222,17 @@ class RequestParser(object):
         return self.add_regex_argument(name, r'^.+@[^.].*\.[a-z]{2,10}$',
                                        re.IGNORECASE, **kwargs)
 
+    def add_int_argument(self, name, min=0, max=100, **kwargs):
+        def parse_int(value, name):
+            value = int(value)
+            if value < min:
+                raise ValueError("out of limit min=" + min)
+            if value > max:
+                raise ValueError("out of limit max=" + max)
+            return value
+        kwargs["type"] = parse_int
+        return self.add_argument(name, **kwargs)
+
 
 # Some types define
 ###############################################################################
