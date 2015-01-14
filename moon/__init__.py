@@ -25,3 +25,6 @@ class NameSpace(dict):
 
     def __setattr__(self, name, value):
         self[name] = value
+
+
+from .utils import *
