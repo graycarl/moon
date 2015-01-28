@@ -9,6 +9,10 @@ def setconf(prjname, confile, **kwargs):
     _confdata[prjname] = (confile, kwargs)
 
 
+def setdefaultconf(prjname, confile, **kwargs):
+    _confdata.setdefault(prjname, (confile, kwargs))
+
+
 def exportconf(prjname, globals):
     """ 从文件和字典中导出配置
     >>> open("/tmp/testmoonconf.py", "w").write("OSOS = 10")
