@@ -21,11 +21,12 @@ class ProgressBar(object):
         else:
             return "%d/%d" % (current, self.max)
 
-    def __call__(self, current):
-        fmt = "\r%s [%s] %s"
+    def __call__(self, current, exinfo=""):
+        fmt = "\r%s [%s] %s %s"
         bar = self.build_bar(current)
         suffix = self.build_suffix(current)
-        sys.stdout.write(fmt % (self.prefix.encode("utf-8"), bar, suffix))
+        line = fmt % (self.prefix.encode("utf-8"), bar, suffix, exinfo)
+        sys.stdout.write(line)
         sys.stdout.flush()
 
 
@@ -42,5 +43,5 @@ if __name__ == "__main__":
     print "Progress bar percent, max=432"
     bar = ProgressBar(max=432, percent=True, clen=40)
     for cur in range(0, 432, 5):
-        bar(cur)
+        bar(cur, u"哈哈")
         time.sleep(0.1)
